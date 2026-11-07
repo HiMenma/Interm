@@ -139,10 +139,16 @@ Xcode 工程不是必需的：SwiftPM 产出两个 Mach-O，`Scripts/build.sh` �
 
 ### 3.9 图标用矢量重绘，不放位图
 
-App 图标与工具栏模板图由 `Scripts/make-icons.swift` 现场绘制：底色是 CoreGraphics 渐变 + 圆角矩形，
+App 图标与工具栏图标由 `Scripts/make-icons.swift` 现场绘制：底色是 CoreGraphics 渐变 + 圆角矩形，
 字形取自 Lucide `terminal` 的路径（viewBox 24×24、stroke 2、圆头端点），按「图形宽度」等比缩放，
-所以 16px 到 1024px 共用一套几何，不需要为小尺寸单独准备位图。
-`iconutil` 只负责把 iconset 打包成 `.icns`。
+所以 16px 到 1024px 共用一套几何，不需要为小尺寸单独准备位图。`iconutil` 只负责打包 `.icns`。
+
+工具栏那张单独调过参数（留白 1%、字形 70%、笔画 2.8 单位），原因有两个：
+
+* 工具栏只有 18pt，照 App 图标比例画，字形只剩几个像素，糊成一团；
+* **FinderSync 的 `toolbarItemImage` 如果标成模板图（`isTemplate = true`），系统会强制单色渲染**，
+  于是工具栏是白色 `>_`、Dock 是彩色 squircle，看起来像两个 App。默认改成彩色版后两者一致，
+  模板图保留为回退路径。
 
 ## 4. 失败处理矩阵
 

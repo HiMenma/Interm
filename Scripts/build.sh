@@ -48,7 +48,7 @@ if [[ -n "$ENTRY_GUARD" ]]; then
 fi
 
 echo "==> 准备图标"
-if [[ ! -f Bundle/Interm.icns || ! -f Bundle/IntermToolbarTemplate.png || "${FORCE_ICONS:-0}" == "1" ]]; then
+if [[ ! -f Bundle/Interm.icns || ! -f Bundle/IntermToolbarIcon.png || "${FORCE_ICONS:-0}" == "1" ]]; then
     swift Scripts/make-icons.swift
 fi
 
@@ -68,6 +68,8 @@ cp Bundle/Interm.icns "$APP/Contents/Resources/Interm.icns"
 echo "==> 组装 Finder 扩展"
 cp "$BIN_DIR/IntermFinder" "$APPEX/Contents/MacOS/IntermFinder"
 cp Bundle/IntermFinder-Info.plist "$APPEX/Contents/Info.plist"
+cp Bundle/IntermToolbarIcon.png "$APPEX/Contents/Resources/IntermToolbarIcon.png"
+cp Bundle/IntermToolbarIcon@2x.png "$APPEX/Contents/Resources/IntermToolbarIcon@2x.png"
 cp Bundle/IntermToolbarTemplate.png "$APPEX/Contents/Resources/IntermToolbarTemplate.png"
 
 "$PLIST_BUDDY" -c "Set :CFBundleShortVersionString $VERSION" "$APPEX/Contents/Info.plist"

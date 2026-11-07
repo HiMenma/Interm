@@ -67,7 +67,7 @@ func writePNG(_ rep: NSBitmapImageRep, to url: URL) throws {
 ///
 /// 这里按「图形宽度」等比缩放并居中，保证不同尺寸下笔画比例与 Lucide 一致，
 /// 因此 16px 的小图标也能保持清晰，不需要单独准备小尺寸位图。
-func drawTerminalGlyph(in cg: CGContext, center: CGPoint, glyphWidth: CGFloat, color: CGColor) {
+func drawTerminalGlyph(in cg: CGContext, center: CGPoint, glyphWidth: CGFloat, color: CGColor, strokeUnits: CGFloat = 2) {
     let unit = glyphWidth / 16          // 图形在 viewBox 里宽 16 个单位（x: 4…20）
     let half = 12 * unit                // viewBox 中心到边缘
 
@@ -78,7 +78,7 @@ func drawTerminalGlyph(in cg: CGContext, center: CGPoint, glyphWidth: CGFloat, c
 
     cg.saveGState()
     cg.setStrokeColor(color)
-    cg.setLineWidth(2 * unit)
+    cg.setLineWidth(strokeUnits * unit)
     cg.setLineCap(.round)
     cg.setLineJoin(.round)
 
@@ -98,8 +98,8 @@ func drawTerminalGlyph(in cg: CGContext, center: CGPoint, glyphWidth: CGFloat, c
     cg.restoreGState()
 }
 
-func appIcon(_ cg: CGContext, size: CGFloat) {
-    let inset = size * 0.055
+func squircleIcon(_ cg: CGContext, size: CGFloat, insetFraction: CGFloat, glyphFraction: CGFloat, strokeUnits: CGFloat = 2) {
+    let inset = size * insetFraction
     let rect = CGRect(x: inset, y: inset, width: size - inset * 2, height: size - inset * 2)
     let radius = rect.width * 0.225
     let shape = CGPath(roundedRect: rect, cornerWidth: radius, cornerHeight: radius, transform: nil)
@@ -152,8 +152,9 @@ func appIcon(_ cg: CGContext, size: CGFloat) {
     drawTerminalGlyph(
         in: cg,
         center: CGPoint(x: rect.midX, y: rect.midY),
-        glyphWidth: size * 0.52,
-        color: CGColor(red: 0.36, green: 0.92, blue: 0.62, alpha: 1.0)
+        glyphWidth: size * glyphFraction,
+        color: CGColor(red: 0.36, green: 0.92, blue: 0.62, alpha: 1.0),
+        strokeUnits: strokeUnits
     )
 }
 
@@ -185,10 +186,25 @@ let variants: [(name: String, pixels: Int)] = [
 ]
 
 for variant in variants {
-    let rep = render(size: variant.pixels, draw: appIcon)
+    let rep = render(size: variant.pixels) { cg, size in
+        squircleIcon(cg, size: size, insetFraction: 0.055, glyphFraction: 0.52)
+    }
     try writePNG(rep, to: iconsetDir.appendingPathComponent("\(variant.name).png"))
 }
 
+// Finder 工具栏用：彩色版（和 App 图标同款，但留白更小、字形更大，18pt 下才看得清）
+for (name, pixels, inset, glyph, stroke) in [
+    // 18pt 下字形要占满、笔画要比 Lucide 原始 2 更粗，否则缩到工具栏里会糊成一团
+    ("IntermToolbarIcon", 36, 0.01, 0.70, 2.8),
+    ("IntermToolbarIcon@2x", 72, 0.01, 0.70, 2.8)
+] {
+    let rep = render(size: pixels) { cg, size in
+        squircleIcon(cg, size: size, insetFraction: inset, glyphFraction: glyph, strokeUnits: stroke)
+    }
+    try writePNG(rep, to: bundleDir.appendingPathComponent("\(name).png"))
+}
+
+// 单色模板版留着备用：某些系统外观下模板图更协调
 let toolbar = render(size: 36, draw: toolbarTemplate)
 try writePNG(toolbar, to: bundleDir.appendingPathComponent("IntermToolbarTemplate.png"))
 

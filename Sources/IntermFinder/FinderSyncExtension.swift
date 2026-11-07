@@ -106,8 +106,19 @@ public final class IntermFinderExtension: FIFinderSync {
         return url.hasDirectoryPath
     }
 
+    /// 工具栏按钮图。
+    ///
+    /// 用**彩色**图标而不是模板图：模板图会被系统强制渲染成单色（Finder 工具栏里就变成一个
+    /// 扁平的白色 `>_`），和 Dock 里的 App 图标看起来像两个东西。彩色图和 App 图标同款，
+    /// 只是留白更小、字形更大，保证 18pt 下清楚。
     static func loadToolbarImage() -> NSImage {
         let bundle = Bundle(for: IntermFinderExtension.self)
+        if let url = bundle.url(forResource: "IntermToolbarIcon", withExtension: "png"),
+           let image = NSImage(contentsOf: url) {
+            image.isTemplate = false
+            image.size = NSSize(width: 18, height: 18)
+            return image
+        }
         if let url = bundle.url(forResource: "IntermToolbarTemplate", withExtension: "png"),
            let image = NSImage(contentsOf: url) {
             image.isTemplate = true

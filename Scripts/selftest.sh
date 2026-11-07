@@ -21,7 +21,7 @@ if [[ -d "$APP" ]]; then pass "App 存在：$APP"; else fail "App 缺失（先�
 if [[ -x "$APP/Contents/MacOS/Interm" ]]; then pass "宿主可执行文件存在"; else fail "宿主可执行文件缺失"; fi
 if [[ -x "$APPEX/Contents/MacOS/IntermFinder" ]]; then pass "扩展可执行文件存在"; else fail "扩展可执行文件缺失"; fi
 if [[ -f "$APP/Contents/Resources/Interm.icns" ]]; then pass "图标已打包"; else fail "图标缺失"; fi
-if [[ -f "$APPEX/Contents/Resources/IntermToolbarTemplate.png" ]]; then pass "工具栏模板图已打包"; else fail "工具栏模板图缺失"; fi
+if [[ -f "$APPEX/Contents/Resources/IntermToolbarIcon.png" ]]; then pass "工具栏图标已打包"; else fail "工具栏图标缺失"; fi
 
 if [[ ! -d "$APP" ]]; then
     echo
