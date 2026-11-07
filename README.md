@@ -1,138 +1,140 @@
 # Interm
 
-在 Finder 里点一下，就在**当前目录**打开终端。纯 Swift 原生实现（AppKit + SwiftUI + FinderSync），没有第三方依赖。
+One click in Finder opens a terminal **in the current folder**. Native Swift (AppKit + SwiftUI + FinderSync), no third-party dependencies.
+
+**English** · [简体中文](README.zh-CN.md)
 
 ```
-Finder 工具栏图标  ──单击──▶  终端已 cd 到该窗口所在目录
+Finder toolbar icon  ──click──▶  terminal opens already cd'd into that window's folder
 ```
 
-## 特性
+## Features
 
-- **一键打开**：把 Interm.app 拖进 Finder 工具栏，单击即在当前 Finder 窗口所在的目录打开终端。
-- **原生右键菜单**：附带 FinderSync 扩展，右键窗口背景/选中项出现「在终端中打开」。
-- **服务菜单**：Finder 右键 › 服务 › 在终端中打开（默认快捷键 `⌃⌥T`），可自行改键。
-- **可脚本化**：`open "interm://open?path=/tmp"`、`Interm --open-at <dir>`。
-- **多终端**：Terminal（默认）、iTerm2、Warp、kitty、WezTerm、Alacritty，或自定义「App 路径 + 参数模板」。
-- **可诊断**：内置 `--selftest`，设置窗口里能看扩展状态、上次打开的目录、一键跑自检。
+- **One click**: drag `Interm.app` into the Finder toolbar; a single click opens a terminal at the front Finder window's folder.
+- **Native context menu**: the bundled FinderSync extension adds “Open in Terminal” to right-click menus (window background or selection).
+- **Services menu**: Finder › Services › Open in Terminal (default `⌃⌥T`, rebindable).
+- **Scriptable**: `open "interm://open?path=/tmp"`, `Interm --open-at <dir>`.
+- **Multiple terminals**: Terminal (default), iTerm2, Warp, kitty, WezTerm, Alacritty, or a custom app + argument template.
+- **Diagnosable**: `--selftest`, plus a settings window that shows extension state, the last opened folder, and a one-click self-test.
 
-## 系统要求
+## Requirements
 
-- macOS 14 或更新（在 macOS 27.2 / Xcode 27.2 / Swift 6.4 上开发与实测）
-- 构建产物是**当前架构**（本机为 arm64）；没有公证、没有 App Store 分发
+- macOS 14 or newer (developed and verified on macOS 27.2 / Xcode 27.2 / Swift 6.4)
+- Builds for the **current architecture only** (arm64 here); not notarized, not distributed on the App Store
 
-## 安装
+## Install
 
 ```bash
-git clone <本仓库> Interm && cd Interm
+git clone <repo> Interm && cd Interm
 
-make build       # 编译并组装 dist/Interm.app
-make selftest    # 结构与自检（可选）
-make install     # 安装到 ~/Applications 并注册扩展
+make build       # compile and assemble dist/Interm.app
+make selftest    # structure + self-test (optional)
+make install     # install to ~/Applications and register the extension
 ```
 
-安装完做两件事：
+Then do two things:
 
-1. **把图标放进 Finder 工具栏**（推荐的单键入口）
-   打开「应用程序」文件夹，按住 `⌘` 把 `Interm.app` 拖到 Finder 窗口的工具栏上松手。
-   之后**单击这个图标**即可在当前目录打开终端。
+1. **Put the icon in the Finder toolbar** (recommended one-click entry)
+   Open the Applications folder, hold `⌘` and drag `Interm.app` onto a Finder window's toolbar.
+   After that, **one click** on that icon opens a terminal in the current folder.
 
-2. **启用 Finder 扩展**（右键菜单 + 工具栏下拉）
-   系统设置 › 通用 › 登录项与扩展 › 扩展 › 访达扩展，勾选 Interm；
-   或打开 Interm 的设置窗口，点「启用 / 管理扩展…」。
+2. **Enable the Finder extension** (context menu + toolbar popup)
+   System Settings › General › Login Items & Extensions › Extensions › Finder Extensions, tick Interm;
+   or open Interm's settings window and click “Enable / Manage Extension…”.
 
-> 第一次单击工具栏图标时，系统会问「Interm 想要控制访达」。这是读取「当前窗口是哪个目录」的唯一方式，允许一次即可。
-> 拒绝的话本次会退回到桌面目录，并弹窗告诉你去哪里改。
+> The first click on the toolbar icon asks “Interm wants to control Finder”. That is the only way to read which folder the front window shows; allow it once.
+> If you decline, that click falls back to the Desktop and shows a dialog telling you where to change it.
 
-想装到 `/Applications`：`make install-system`（可能触发系统的「App 管理」授权）。
+To install into `/Applications` instead: `make install-system` (may trigger the App Management prompt).
 
-## 使用
+## Usage
 
-| 入口 | 操作 | 说明 |
+| Entry point | Action | Notes |
 | --- | --- | --- |
-| Finder 工具栏 | 单击 Interm 图标 | 在当前 Finder 窗口的目录打开终端 |
-| 右键菜单 | 右键窗口背景或选中项 › 在终端中打开 | 由 FinderSync 扩展提供 |
-| 服务 | Finder › 服务 › 在终端中打开 | 快捷键 `⌃⌥T`，可在系统设置里改 |
-| URL | `open "interm://open?path=/tmp"` | 也可带 `&terminal=iterm2` |
-| 命令行 | `Interm --open-at ~/code` | 加 `--dry-run` 只打印将要执行的命令 |
-| 状态栏 | 菜单栏图标 › 在终端中打开当前目录 | 与工具栏点击等价 |
+| Finder toolbar | Click the Interm icon | Opens a terminal in the front Finder window's folder |
+| Context menu | Right-click a window background or selection › Open in Terminal | Provided by the FinderSync extension |
+| Services | Finder › Services › Open in Terminal | `⌃⌥T` by default; rebindable in System Settings |
+| URL | `open "interm://open?path=/tmp"` | Optionally add `&terminal=iterm2` |
+| CLI | `Interm --open-at ~/code` | Add `--dry-run` to print the command instead of running it |
+| Menu bar | Menu bar icon › Open Current Folder in Terminal | Same as a toolbar click |
 
-设置窗口（菜单栏图标 › 设置…）里可以切换终端、填写自定义参数模板、查看扩展状态、运行自检。
+The settings window (menu bar icon › Settings…) lets you switch terminals, fill in a custom argument template, inspect extension state and run the self-test.
 
-## 支持的终端
+## Supported terminals
 
-| 终端 | 打开方式 | 状态 |
+| Terminal | How it is opened | Status |
 | --- | --- | --- |
-| Terminal | 文件夹作为文档交给 LaunchServices | 本机实测 |
-| iTerm2 | 同上 | 未装，按官方文档实现 |
-| Warp | 同上 | 未装，按官方文档实现 |
-| kitty | `kitty --directory <dir>` | 未装 |
-| WezTerm | `wezterm start --cwd <dir>` | 未装 |
-| Alacritty | `alacritty --working-directory <dir>` | 未装 |
-| 自定义 | App 路径 + 参数模板（`{dir}` 占位） | 本机实测（用测试 App 验证过文档打开路径） |
+| Terminal | Folder handed to LaunchServices as a document | Verified locally |
+| iTerm2 | Same | Not installed; implemented per its docs |
+| Warp | Same | Not installed; implemented per its docs |
+| kitty | `kitty --directory <dir>` | Not installed |
+| WezTerm | `wezterm start --cwd <dir>` | Not installed |
+| Alacritty | `alacritty --working-directory <dir>` | Not installed |
+| Custom | App path + argument template (`{dir}` placeholder) | Verified locally with a test app |
 
-只显示本机已安装的终端；换电脑后设置会自动回落到 Terminal。
+Only installed terminals are listed; on another machine the setting falls back to Terminal.
 
-## 权限说明
+## Permissions
 
-| 权限 | 为什么需要 | 能否避免 |
+| Permission | Why it is needed | Avoidable? |
 | --- | --- | --- |
-| 自动化（控制「访达」） | 工具栏点击时读取当前窗口目录 | 不能；这是系统唯一提供的途径 |
-| 辅助功能 / 完全磁盘访问 | 不需要 | — |
-| 扩展沙盒 | FinderSync 扩展的硬性要求 | 不能；扩展只做「取路径 + 转交」，实际启动终端由宿主完成 |
+| Automation (control Finder) | Read the front window's folder on a toolbar click | No — this is the only system-provided route |
+| Accessibility / Full Disk Access | Not needed | — |
+| Extension sandbox | Hard requirement for FinderSync extensions | No — the extension only reads the path and forwards it; the host app launches the terminal |
 
-Interm 不联网、不上传任何路径，所有处理都在本机。
+Interm makes no network requests and never uploads paths. Everything happens locally.
 
-## 工作原理（30 秒版）
+## How it works (30-second version)
 
 ```
-工具栏单击 → 宿主 App（非沙箱）──AppleScript──▶ Finder「当前窗口目录」
-                                └──▶ NSWorkspace 把文件夹当文档交给终端（新窗口即在该目录）
+Toolbar click → host app (not sandboxed) ──AppleScript──▶ Finder: front window folder
+                                          └──▶ NSWorkspace hands the folder to the terminal as a document
+                                               (the new window starts in that folder)
 
-右键菜单   → FinderSync 扩展（沙盒）──interm://open?path=…──▶ 宿主 App ──▶ 同上
+Context menu  → FinderSync extension (sandboxed) ──interm://open?path=…──▶ host app ──▶ same as above
 ```
 
-细节、SDK 依据和踩过的坑（例如 FinderSync 的工具栏按钮只能挂下拉菜单、扩展入口点必须是 `NSExtensionMain`）见 [docs/DESIGN.md](docs/DESIGN.md)。
+Design notes, SDK evidence and the pitfalls we hit (FinderSync toolbar buttons can only open a menu; the extension entry point must be `NSExtensionMain`) are in [docs/DESIGN.md](docs/DESIGN.md) — currently written in Chinese.
 
-## 常用命令
+## Commands
 
 ```bash
-make build        # 编译 + 组装 dist/Interm.app
-make test         # 单元测试（不需要 GUI）
-make install      # 安装到 ~/Applications
-make uninstall    # 卸载（先注销扩展再删文件）
-make selftest     # 结构 / 签名 / 注册状态 / 运行时自检
-make smoke        # 不开窗口验证一次路径解析
-make icons        # 重新生成图标
+make build        # compile + assemble dist/Interm.app
+make test         # unit tests (no GUI needed)
+make install      # install to ~/Applications
+make uninstall    # uninstall (unregisters the extension before deleting files)
+make selftest     # structure / signature / registration / runtime self-test
+make smoke        # verify path resolution without opening a window
+make icons        # regenerate the icons
 make clean
 ```
 
-排查见 [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)。
+Troubleshooting: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) (Chinese).
 
-## 开发
+## Development
 
 ```
-Sources/IntermCore/    与 UI 无关的逻辑（URL、路径归一、预设、启动器、偏好、菜单模型）
-Sources/Interm/        宿主 App（CLI、URL、服务、状态栏、SwiftUI 设置）
-Sources/IntermFinder/  FinderSync 扩展（沙盒，只做转发）
-Tests/IntermCoreTests/ 63 个单元测试
-Scripts/               构建、签名、安装、图标、自检
-Bundle/                Info.plist、entitlements、生成的图标
+Sources/IntermCore/    UI-free logic (URL scheme, path normalisation, presets, launcher, preferences, menu model)
+Sources/Interm/        Host app (CLI, URL, Services, menu bar, SwiftUI settings)
+Sources/IntermFinder/  FinderSync extension (sandboxed; forwards paths only)
+Tests/IntermCoreTests/ 70 unit tests
+Scripts/               build, sign, install, icons, self-test
+Bundle/                Info.plist, entitlements, generated icons
 ```
 
-`swift build` 只产出两个可执行文件；`Scripts/build.sh` 负责组装 `.app`/`.appex`、写 Info.plist、由内向外做 ad-hoc 签名并校验。
+`swift build` produces just the two executables; `Scripts/build.sh` assembles the `.app`/`.appex`, writes the Info.plists, signs from the inside out with an ad-hoc identity, and verifies the result.
 
-## 限制
+## Limitations
 
-- 没有 Developer ID 证书，产物是 ad-hoc 签名，未公证；只适合本机/自用。要给他人分发需要自行签名 + 公证。
-- 只构建当前架构，不产出 universal binary。
-- FinderSync 的工具栏按钮在系统层面只能弹下拉菜单（SDK 没有 `toolbarItemClicked`），所以「一点即开」的是拖到工具栏的 App 图标。
+- No Developer ID certificate: the build is ad-hoc signed and not notarized, so it is meant for local/personal use. Distributing it to others requires your own signing and notarization.
+- Builds for the current architecture only; no universal binary.
+- A FinderSync toolbar item can only open a menu (the SDK has no `toolbarItemClicked`), so the true one-click button is the app icon you drag into the toolbar.
 
-## 图标
+## Icon
 
-App 图标与 Finder 工具栏图标基于 [Lucide](https://lucide.dev/icons/terminal) 的 `terminal` 图标（ISC 许可），
-在 [Scripts/make-icons.swift](Scripts/make-icons.swift) 里用 `CGPath` 按原始几何重绘，仓库不存位图素材。
-素材与许可说明见 [docs/icons/README.md](docs/icons/README.md)。
+The app icon and the Finder toolbar icon are based on [Lucide](https://lucide.dev/icons/terminal)'s `terminal` icon (ISC licence), redrawn as `CGPath` from the original geometry in [Scripts/make-icons.swift](Scripts/make-icons.swift) — no bitmap assets in the repository.
+Assets and licence text: [docs/icons/README.md](docs/icons/README.md).
 
 ## License
 
-MIT，见 [LICENSE](LICENSE)。
+MIT — see [LICENSE](LICENSE).
