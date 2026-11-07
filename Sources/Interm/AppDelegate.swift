@@ -12,14 +12,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate, StatusItemActionTarget
     private var settingsController: SettingsWindowController?
     private var pendingClickTimer: Timer?
 
+    /// 本次启动是否已经处理过 `interm://` 事件。
+    ///
+    /// 实测（macOS 27）：URL 唤起时 `application(_:open:)` 会**先于**
+    /// `applicationDidFinishLaunching` 到达。如果不在后者里检查这个标记，
+    /// 就会在打开目标目录之后，又按「工具栏点击」把前台目录再开一次。
+    private var didReceiveOpenEvent = false
+
     // MARK: - Lifecycle
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         router.onOpenSettings = { [weak self] in self?.showSettings() }
         statusItem = StatusItemController(target: self)
+        Log.app.notice("launched, onboarding=\(!self.preferences.hasCompletedOnboarding, privacy: .public)")
 
         if CommandLineMode.wantsSettingsOnLaunch {
             showSettings()
+            return
+        }
+
+        // 已经由 URL 唤起（扩展菜单 / open interm://…）：不要再当成工具栏点击。
+        if didReceiveOpenEvent {
+            Log.app.notice("launch finished after URL event; not probing Finder")
             return
         }
 
@@ -34,12 +48,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, StatusItemActionTarget
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
+        didReceiveOpenEvent = true
         cancelPendingClick()
+        Log.app.notice("open event, urls=\(urls.count, privacy: .public)")
         router.handle(urls: urls)
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        // 工具栏图标再次点击时 LaunchServices 发 reapen 事件，这里接住。
+        // 工具栏图标再次点击时 LaunchServices 发 reopen 事件，这里接住。
+        Log.app.notice("reopen event, hasVisibleWindows=\(flag, privacy: .public)")
         cancelPendingClick()
         router.openFinderFrontWindow()
         return false
@@ -59,6 +76,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, StatusItemActionTarget
             MainActor.assumeIsolated {
                 guard let self else { return }
                 self.pendingClickTimer = nil
+                guard !self.didReceiveOpenEvent else { return }
                 self.router.openFinderFrontWindow()
             }
         }

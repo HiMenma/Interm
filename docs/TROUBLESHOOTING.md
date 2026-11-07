@@ -62,6 +62,28 @@ otool -tvV ~/Applications/Interm.app/Contents/PlugIns/IntermFinder.appex/Content
 
 修复：重新 `make build && make install`（`Scripts/build.sh` 有守卫，这种二进制现在根本构建不出来）。
 
+## 3.5 右键菜单 / 工具栏下拉「点了没反应」
+
+先看扩展日志：
+
+```bash
+log stream --info --predicate 'subsystem == "com.menmapro.Interm" and category == "finder"'
+```
+
+正常一次点击应该看到两行：
+
+```
+menu kind=1 entries=1
+handing off /Users/you/project via cache opened=true
+```
+
+| 现象 | 含义 | 处理 |
+| --- | --- | --- |
+| 只有 `menu kind=…`，没有 `handing off …` | 菜单动作没被调用（旧版本 bug：靠 `representedObject` 传目录，Finder 序列化后丢掉了） | 升级到这个版本：`make build && make install`，再 `killall pkd; killall Finder` |
+| `handing off … opened=false` | 沙盒里 `NSWorkspace.open` 失败 | 确认 `interm://` 已注册：`lsregister -dump \| grep interm`；重装一次 |
+| `handing off … via fallback` | Finder 没给出 `targetedURL`，退到了桌面 | 换个普通文件夹窗口再试；「最近使用」「iCloud 共享」这类虚拟位置没有真实路径 |
+| 点一次却开了两个窗口 | 旧版本 bug（URL 唤起后又当成工具栏点击） | 同上，升级即可 |
+
 ## 4. 终端打开了，但不在目标目录
 
 - 看 `--dry-run` 输出，确认解析出来的目录与启动方式：

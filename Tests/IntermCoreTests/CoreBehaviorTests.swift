@@ -127,7 +127,7 @@ final class ExtensionMenuModelTests: XCTestCase {
             isDirectory: isDirectory,
             fallbackDirectory: home
         )
-        XCTAssertEqual(entries, [ExtensionMenuEntry(title: ExtensionMenuModel.currentFolderTitle, directory: project)])
+        XCTAssertEqual(entries, [ExtensionMenuEntry(tag: 0, title: ExtensionMenuModel.currentFolderTitle, directory: project)])
     }
 
     func testContainerMenuFallsBackWhenTargetedIsNil() {
@@ -187,6 +187,107 @@ final class ExtensionMenuModelTests: XCTestCase {
         )
         XCTAssertEqual(entries.first?.directory, project)
         XCTAssertEqual(entries.first?.title, ExtensionMenuModel.currentFolderTitle)
+    }
+
+    // MARK: - 动作解析
+
+    func testResolvePrefersMenuCache() {
+        let targeted = URL(fileURLWithPath: "/Users/example/other", isDirectory: true)
+        let resolution = ExtensionMenuModel.resolve(
+            tag: 0,
+            cache: [0: project],
+            representedObject: "/Users/example/stale",
+            targetedURL: targeted,
+            selectedURLs: [],
+            isDirectory: isDirectory,
+            fallbackDirectory: home
+        )
+        XCTAssertEqual(resolution.directory, project)
+        XCTAssertEqual(resolution.source, "cache")
+    }
+
+    func testResolvePrefersTargetedURLWhenCacheOnlyHoldsFallback() {
+        let resolution = ExtensionMenuModel.resolve(
+            tag: 0,
+            cache: [0: home],
+            representedObject: nil,
+            targetedURL: project,
+            selectedURLs: [],
+            isDirectory: isDirectory,
+            fallbackDirectory: home
+        )
+        XCTAssertEqual(resolution.directory, project)
+        XCTAssertEqual(resolution.source, "targeted")
+    }
+
+    func testResolveFallsBackToRepresentedObjectString() {
+        let resolution = ExtensionMenuModel.resolve(
+            tag: 7,
+            cache: [:],
+            representedObject: project.path,
+            targetedURL: nil,
+            selectedURLs: [],
+            isDirectory: isDirectory,
+            fallbackDirectory: home
+        )
+        XCTAssertEqual(resolution.directory.path, project.path)
+        XCTAssertEqual(resolution.source, "representedObject")
+    }
+
+    func testResolveFallsBackToRepresentedObjectURL() {
+        let resolution = ExtensionMenuModel.resolve(
+            tag: 7,
+            cache: [:],
+            representedObject: project as NSURL,
+            targetedURL: nil,
+            selectedURLs: [],
+            isDirectory: isDirectory,
+            fallbackDirectory: home
+        )
+        XCTAssertEqual(resolution.directory.path, project.path)
+        XCTAssertEqual(resolution.source, "representedObject")
+    }
+
+    func testResolveFallsBackToTargetedURL() {
+        let resolution = ExtensionMenuModel.resolve(
+            tag: -1,
+            cache: [:],
+            representedObject: nil,
+            targetedURL: project,
+            selectedURLs: [file],
+            isDirectory: isDirectory,
+            fallbackDirectory: home
+        )
+        XCTAssertEqual(resolution.directory, project)
+        XCTAssertEqual(resolution.source, "targeted")
+    }
+
+    func testResolveFallsBackToSelection() {
+        let resolution = ExtensionMenuModel.resolve(
+            tag: -1,
+            cache: [:],
+            representedObject: nil,
+            targetedURL: nil,
+            selectedURLs: [file],
+            isDirectory: isDirectory,
+            fallbackDirectory: home
+        )
+        XCTAssertEqual(resolution.directory, project)
+        XCTAssertEqual(resolution.source, "selection")
+    }
+
+    func testResolveFallsBackToHome() {
+        let resolution = ExtensionMenuModel.resolve(
+            tag: -1,
+            cache: [:],
+            representedObject: nil,
+            targetedURL: nil,
+            selectedURLs: [],
+            isDirectory: isDirectory,
+            fallbackDirectory: home
+        )
+        XCTAssertEqual(resolution.directory, home)
+        XCTAssertEqual(resolution.source, "fallback")
     }
 
     func testSidebarMenuIsEmpty() {

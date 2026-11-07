@@ -13,6 +13,9 @@ import IntermCore
 @objc(IntermFinderExtension)
 public final class IntermFinderExtension: FIFinderSync {
     private let toolbarImage: NSImage
+    /// 本次菜单里每个 tag 对应的目录。Finder 回调动作时可能丢失 representedObject，
+    /// 这份缓存是首选线索，tag 是 NSMenuItem 自带的整型属性，能跨过菜单序列化。
+    private var menuDirectoryCache: [Int: URL] = [:]
 
     public override init() {
         self.toolbarImage = Self.loadToolbarImage()
@@ -50,29 +53,42 @@ public final class IntermFinderExtension: FIFinderSync {
             fallbackDirectory: FinderDirectoryProbe.fallbackDirectory()
         )
 
-        Log.finder.debug("menu kind=\(menuKind.rawValue) entries=\(entries.count)")
+        menuDirectoryCache = Dictionary(uniqueKeysWithValues: entries.map { ($0.tag, $0.directory) })
+        Log.finder.notice("menu kind=\(menuKind.rawValue) entries=\(entries.count)")
 
         let menu = NSMenu(title: IntermIdentity.displayName)
         for entry in entries {
             let item = NSMenuItem(title: entry.title, action: #selector(openInTerminal(_:)), keyEquivalent: "")
             item.target = self
-            item.representedObject = entry.directory
+            item.tag = entry.tag
+            // 双重保险：万一 cache 对不上，字符串形式的路径还有机会活下来。
+            item.representedObject = entry.directory.path
             menu.addItem(item)
         }
         return menu
     }
 
-    @objc private func openInTerminal(_ sender: NSMenuItem) {
-        guard let directory = sender.representedObject as? URL else {
-            Log.finder.error("menu item without a directory")
-            return
-        }
-        guard let url = IntermURL.make(from: IntermOpenRequest(directory: directory)) else {
+    @objc private func openInTerminal(_ sender: Any?) {
+        let controller = FIFinderSyncController.default()
+        let item = sender as? NSMenuItem
+        let resolution = ExtensionMenuModel.resolve(
+            tag: item?.tag ?? -1,
+            cache: menuDirectoryCache,
+            representedObject: item?.representedObject,
+            targetedURL: controller.targetedURL(),
+            selectedURLs: controller.selectedItemURLs() ?? [],
+            isDirectory: Self.isDirectory,
+            fallbackDirectory: FinderDirectoryProbe.fallbackDirectory()
+        )
+
+        guard let url = IntermURL.make(from: IntermOpenRequest(directory: resolution.directory)) else {
             Log.finder.error("cannot build interm:// URL")
             return
         }
-        Log.finder.notice("handing off \(directory.path, privacy: .public)")
-        NSWorkspace.shared.open(url)
+        let opened = NSWorkspace.shared.open(url)
+        Log.finder.notice(
+            "handing off \(resolution.directory.path, privacy: .public) via \(resolution.source, privacy: .public) opened=\(opened, privacy: .public)"
+        )
     }
 
     // MARK: - Helpers

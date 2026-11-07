@@ -93,7 +93,25 @@ Xcode 的 app extension 用 `LD_ENTRY_POINT = _NSExtensionMain` 链接，二进�
 因此 `Package.swift` 里给 `IntermFinder` 加了 linkerSettings，`Scripts/build.sh` 会反汇编
 `_main` 做守卫：一旦发现 `_main` 里有函数调用（意味着退回 Swift main），构建直接失败。
 
-### 3.4 打开终端用「文件夹当文档」而不是 AppleScript
+### 3.4 菜单动作拿不到 `representedObject`
+
+Finder 会先序列化扩展返回的 `NSMenu`，再回调动作。实测结果：动作确实被调用到扩展进程，
+但 `sender.representedObject` 已经是 `nil`（日志里表现为「点了没反应」）。
+
+做法：
+* 把目录写进**进程内缓存**，键是 `NSMenuItem.tag`（tag 是 NSMenuItem 自己的整型属性，能活过序列化）；
+* 同时把路径字符串再塞一份到 `representedObject`（双重保险）；
+* 都拿不到时依次回退 `targetedURL()`（官方文档支持在菜单动作里调用）→ 选中项 → 桌面。
+* 如果构建菜单时 `targetedURL` 就是 nil（工具栏按钮偶尔如此），缓存里只剩兜底目录，
+  此时**优先**再问一次 `targetedURL()`，避免把「上次的兜底」当成用户眼前的文件夹。
+
+### 3.5 URL 唤起时 `application(_:open:)` 先于 `applicationDidFinishLaunching`
+
+macOS 27 实测：通过 `interm://` 启动 App 时，URL 事件在 `applicationDidFinishLaunching` **之前**到达。
+早期实现里后者会再排一个「工具栏点击」定时器，结果每次扩展菜单点击都会多开一个前台目录的窗口。
+现在用 `didReceiveOpenEvent` 标记：URL 唤起过的启动不再探测 Finder。
+
+### 3.6 打开终端用「文件夹当文档」而不是 AppleScript
 
 `Terminal.app/Contents/Info.plist` 声明了 `public.directory` 文档类型，因此：
 
@@ -104,7 +122,7 @@ NSWorkspace.shared.open([directory], withApplicationAt: terminalApp, configurati
 就会让终端新建窗口并 `cd` 到该目录——不需要向终端发 Apple Events，也就不需要第二份自动化授权。
 只有「读 Finder 当前目录」这一步必须用 AppleScript。
 
-### 3.5 ad-hoc 签名能满足本地 FinderSync
+### 3.7 ad-hoc 签名能满足本地 FinderSync
 
 本机没有代码签名身份（`security find-identity` 为 0），扩展用 `codesign -s -` 签名，
 entitlements 为 `app-sandbox` + `get-task-allow`（等价于 Xcode 的 “Sign to Run Locally”）。
@@ -113,7 +131,7 @@ entitlements 为 `app-sandbox` + `get-task-allow`（等价于 Xcode 的 “Sign 
 
 注意：要分发给别人必须换真实证书并去掉 `get-task-allow`。
 
-### 3.6 构建方式：SwiftPM + 手工组装
+### 3.8 构建方式：SwiftPM + 手工组装
 
 Xcode 工程不是必需的：SwiftPM 产出两个 Mach-O，`Scripts/build.sh` 组装 `.app`/`.appex`、
 写 Info.plist、装图标、由内向外签名、再 `codesign --verify --deep --strict`。
@@ -131,6 +149,8 @@ Xcode 工程不是必需的：SwiftPM 产出两个 Mach-O，`Scripts/build.sh` �
 | 终端未安装 | 报错并提示打开设置 |
 | 自定义模板缺少 `{dir}` | 报错（否则终端不知道该去哪） |
 | 300ms 内重复请求 | 去重（连点、reopen 与 URL 双触发） |
+| URL 唤起后又触发「工具栏点击」 | 用 `didReceiveOpenEvent` 跳过探测，避免多开一个窗口 |
+| 菜单动作丢失 `representedObject` | tag 缓存 → 路径字符串 → `targetedURL()` → 选中项 → 桌面 |
 | 扩展未注册/未启用 | 设置窗口显示状态 + 一键打开扩展管理界面 |
 
 ## 5. 测试策略

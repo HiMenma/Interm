@@ -11,12 +11,30 @@ public enum FinderMenuKind: Int, Sendable {
 }
 
 public struct ExtensionMenuEntry: Equatable, Sendable {
+    /// 菜单项在本次菜单里的序号，写进 `NSMenuItem.tag`。
+    ///
+    /// Finder 会把扩展返回的菜单序列化后再回调动作，`representedObject` 可能在
+    /// 这一趟里丢掉（实测：动作被调用时 `representedObject` 为 nil），
+    /// 而 `tag` 是 NSMenuItem 自己的整型属性，能活下来。
+    public let tag: Int
     public let title: String
     public let directory: URL
 
-    public init(title: String, directory: URL) {
+    public init(tag: Int, title: String, directory: URL) {
+        self.tag = tag
         self.title = title
         self.directory = directory
+    }
+}
+
+/// 菜单动作最终解析出来的目录，以及它是从哪条线索拿到的（用于日志排查）。
+public struct ExtensionMenuResolution: Equatable, Sendable {
+    public let directory: URL
+    public let source: String
+
+    public init(directory: URL, source: String) {
+        self.directory = directory
+        self.source = source
     }
 }
 
@@ -39,7 +57,7 @@ public enum ExtensionMenuModel {
 
         case .contextualForContainer, .toolbar:
             let directory = targetedURL ?? fallbackDirectory
-            return [ExtensionMenuEntry(title: currentFolderTitle, directory: directory)]
+            return [ExtensionMenuEntry(tag: 0, title: currentFolderTitle, directory: directory)]
 
         case .contextualForItems:
             let directory: URL
@@ -48,8 +66,42 @@ public enum ExtensionMenuModel {
             } else {
                 directory = targetedURL ?? fallbackDirectory
             }
-            return [ExtensionMenuEntry(title: selectedItemTitle, directory: directory)]
+            return [ExtensionMenuEntry(tag: 0, title: selectedItemTitle, directory: directory)]
         }
+    }
+
+    /// 菜单项被点击时，按可靠性从高到低找目录。
+    ///
+    /// 顺序：本次菜单的缓存 → `representedObject` → `targetedURL()` → 选中项 → 桌面。
+    /// `targetedURL()` 在「菜单动作」里是官方支持的用法，作为兜底足够可靠。
+    public static func resolve(
+        tag: Int,
+        cache: [Int: URL],
+        representedObject: Any?,
+        targetedURL: URL?,
+        selectedURLs: [URL],
+        isDirectory: (URL) -> Bool,
+        fallbackDirectory: URL
+    ) -> ExtensionMenuResolution {
+        // 若构建菜单时就没拿到 targetedURL（工具栏按钮偶尔如此），缓存里存的是兜底目录；
+        // 这种情况宁可再问一次 targetedURL()，它比「上次的兜底」更可能指向用户眼前的文件夹。
+        if let cached = cache[tag], cached != fallbackDirectory {
+            return ExtensionMenuResolution(directory: cached, source: "cache")
+        }
+        if let path = representedObject as? String, !path.isEmpty {
+            return ExtensionMenuResolution(directory: URL(fileURLWithPath: path, isDirectory: true), source: "representedObject")
+        }
+        if let url = representedObject as? URL {
+            return ExtensionMenuResolution(directory: url, source: "representedObject")
+        }
+        if let targetedURL {
+            return ExtensionMenuResolution(directory: targetedURL, source: "targeted")
+        }
+        if let first = selectedURLs.first {
+            let directory = isDirectory(first) ? first : first.deletingLastPathComponent()
+            return ExtensionMenuResolution(directory: directory, source: "selection")
+        }
+        return ExtensionMenuResolution(directory: fallbackDirectory, source: "fallback")
     }
 
     public static var currentFolderTitle: String {
