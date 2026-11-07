@@ -1,0 +1,10 @@
+.build/
+dist/
+.DS_Store
+*.xcuserstate
+xcuserdata/
+
+# 由 Scripts/make-icons.swift 生成
+Bundle/Interm.iconset/
+Bundle/Interm.icns
+Bundle/IntermToolbarTemplate.png
