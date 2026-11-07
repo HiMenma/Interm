@@ -1,7 +1,9 @@
 SHELL := /bin/bash
-.PHONY: all app test icons install install-system uninstall selftest smoke clean
+.PHONY: all build app test icons install install-system uninstall selftest smoke clean
 
-all: app
+all: build
+
+build: app
 
 ## 编译并组装 dist/Interm.app
 app:
@@ -16,7 +18,9 @@ icons:
 	swift Scripts/make-icons.swift
 
 ## 安装到 ~/Applications 并注册扩展
-install: app
+install: build
+
+build: app
 	./Scripts/install.sh
 
 ## 安装到 /Applications（可能触发「App 管理」授权）
