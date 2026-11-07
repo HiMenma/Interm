@@ -131,6 +131,8 @@ Bundle/                Info.plist、entitlements、生成的图标
 
 ## 图标
 
+<img src="docs/icons/4-采用后预览.png" width="720" alt="图标在 1024/256/128/64/32/16 px 下的效果，以及 Finder 工具栏与 Dock 中的样子">
+
 App 图标与 Finder 工具栏图标基于 [Lucide](https://lucide.dev/icons/terminal) 的 `terminal` 图标（ISC 许可），
 在 [Scripts/make-icons.swift](Scripts/make-icons.swift) 里用 `CGPath` 按原始几何重绘，仓库不存位图素材。
 素材与许可说明见 [docs/icons/README.md](docs/icons/README.md)。

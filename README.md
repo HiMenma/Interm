@@ -132,6 +132,8 @@ Bundle/                Info.plist, entitlements, generated icons
 
 ## Icon
 
+<img src="docs/icons/4-采用后预览.png" width="720" alt="The icon at 1024/256/128/64/32/16 px, next to system icons in a Finder toolbar, and in the Dock">
+
 The app icon and the Finder toolbar icon are based on [Lucide](https://lucide.dev/icons/terminal)'s `terminal` icon (ISC licence), redrawn as `CGPath` from the original geometry in [Scripts/make-icons.swift](Scripts/make-icons.swift) — no bitmap assets in the repository.
 Assets and licence text: [docs/icons/README.md](docs/icons/README.md).
 
