@@ -58,26 +58,40 @@ func writePNG(_ rep: NSBitmapImageRep, to url: URL) throws {
     try data.write(to: url)
 }
 
-/// 终端里那个 `>_` 提示符。
-func drawPrompt(in cg: CGContext, size: CGFloat, color: CGColor, lineWidth: CGFloat, origin: CGPoint = .zero) {
+/// Lucide `terminal` 图标的矢量实现。
+///
+/// 原始素材：docs/icons/svg/lucide-terminal.svg（lucide-static，ISC 许可）
+///   viewBox 24×24，stroke-width 2，圆头端点、圆角连接，无填充：
+///     M12 19h8          下划线
+///     m4 17 6-6-6-6     提示符箭头（4,17 → 10,11 → 4,5）
+///
+/// 这里按「图形宽度」等比缩放并居中，保证不同尺寸下笔画比例与 Lucide 一致，
+/// 因此 16px 的小图标也能保持清晰，不需要单独准备小尺寸位图。
+func drawTerminalGlyph(in cg: CGContext, center: CGPoint, glyphWidth: CGFloat, color: CGColor) {
+    let unit = glyphWidth / 16          // 图形在 viewBox 里宽 16 个单位（x: 4…20）
+    let half = 12 * unit                // viewBox 中心到边缘
+
+    // SVG 的 y 轴朝下，CoreGraphics 朝上，这里顺手翻转
+    func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+        CGPoint(x: center.x - half + x * unit, y: center.y - half + (24 - y) * unit)
+    }
+
     cg.saveGState()
     cg.setStrokeColor(color)
-    cg.setLineWidth(lineWidth)
+    cg.setLineWidth(2 * unit)
     cg.setLineCap(.round)
     cg.setLineJoin(.round)
 
-    let x = origin.x
-    let y = origin.y
     let chevron = CGMutablePath()
-    chevron.move(to: CGPoint(x: x + size * 0.30, y: y + size * 0.40))
-    chevron.addLine(to: CGPoint(x: x + size * 0.44, y: y + size * 0.50))
-    chevron.addLine(to: CGPoint(x: x + size * 0.30, y: y + size * 0.60))
+    chevron.move(to: point(4, 17))
+    chevron.addLine(to: point(10, 11))
+    chevron.addLine(to: point(4, 5))
     cg.addPath(chevron)
     cg.strokePath()
 
     let underscore = CGMutablePath()
-    underscore.move(to: CGPoint(x: x + size * 0.52, y: y + size * 0.38))
-    underscore.addLine(to: CGPoint(x: x + size * 0.70, y: y + size * 0.38))
+    underscore.move(to: point(12, 19))
+    underscore.addLine(to: point(20, 19))
     cg.addPath(underscore)
     cg.strokePath()
 
@@ -135,17 +149,22 @@ func appIcon(_ cg: CGContext, size: CGFloat) {
     cg.setLineWidth(max(1, size * 0.006))
     cg.strokePath()
 
-    drawPrompt(
+    drawTerminalGlyph(
         in: cg,
-        size: size,
-        color: CGColor(red: 0.36, green: 0.92, blue: 0.62, alpha: 1.0),
-        lineWidth: size * 0.062
+        center: CGPoint(x: rect.midX, y: rect.midY),
+        glyphWidth: size * 0.52,
+        color: CGColor(red: 0.36, green: 0.92, blue: 0.62, alpha: 1.0)
     )
 }
 
 func toolbarTemplate(_ cg: CGContext, size: CGFloat) {
     cg.clear(CGRect(x: 0, y: 0, width: size, height: size))
-    drawPrompt(in: cg, size: size, color: CGColor(gray: 0, alpha: 1), lineWidth: size * 0.095)
+    drawTerminalGlyph(
+        in: cg,
+        center: CGPoint(x: size / 2, y: size / 2),
+        glyphWidth: size * 0.74,
+        color: CGColor(gray: 0, alpha: 1)
+    )
 }
 
 // MARK: - 输出

@@ -127,6 +127,12 @@ Bundle/                Info.plist、entitlements、生成的图标
 - 只构建当前架构，不产出 universal binary。
 - FinderSync 的工具栏按钮在系统层面只能弹下拉菜单（SDK 没有 `toolbarItemClicked`），所以「一点即开」的是拖到工具栏的 App 图标。
 
+## 图标
+
+App 图标与 Finder 工具栏图标基于 [Lucide](https://lucide.dev/icons/terminal) 的 `terminal` 图标（ISC 许可），
+在 [Scripts/make-icons.swift](Scripts/make-icons.swift) 里用 `CGPath` 按原始几何重绘，仓库不存位图素材。
+素材与许可说明见 [docs/icons/README.md](docs/icons/README.md)。
+
 ## License
 
 MIT，见 [LICENSE](LICENSE)。
