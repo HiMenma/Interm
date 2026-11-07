@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- FinderSync 扩展必须沙箱运行（pkd 的要求） -->
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
+    <!-- 本地 ad-hoc 签名时模拟 Xcode 的 "Sign to Run Locally"，
+         否则 pkd 可能拒绝加载扩展。分发时请改用自己的开发者证书并去掉这一项。 -->
+    <key>com.apple.security.get-task-allow</key>
+    <true/>
+</dict>
+</plist>
