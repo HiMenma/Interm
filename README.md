@@ -10,6 +10,10 @@ One click in Finder opens a terminal **in the current folder**. Native Swift (Ap
 Finder toolbar icon  ──click──▶  terminal opens already cd'd into that window's folder
 ```
 
+## Screenshots
+
+<img src="docs/images/screenshot-toolbar-terminal.png" width="760" alt="Interm in the Finder toolbar, and the terminal it opens in the same folder">
+
 ## Features
 
 - **One click**: drag `Interm.app` into the Finder toolbar; a single click opens a terminal at the front Finder window's folder.

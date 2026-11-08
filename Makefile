@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-.PHONY: all build app test icons install install-system uninstall selftest smoke dist clean
+.PHONY: all build app test icons install install-system uninstall selftest smoke dist screenshots clean
 
 VERSION ?= 1.0.0
 BUILD_NUMBER ?= $(shell date +%Y%m%d%H%M)
@@ -38,6 +38,10 @@ selftest: build
 ## 不开窗口地验证一次路径解析与终端选择
 smoke: build
 	dist/Interm.app/Contents/MacOS/Interm --open-at /tmp --dry-run
+
+## 抓 README 用的窗口截图（需要「屏幕录制」权限）
+screenshots: build
+	./Scripts/capture-screenshots.sh
 
 ## 打包发布资产（zip + sha256）
 dist:

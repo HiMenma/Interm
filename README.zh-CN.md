@@ -10,6 +10,12 @@
 Finder 工具栏图标  ──单击──▶  终端已 cd 到该窗口所在目录
 ```
 
+## 截图
+
+<img src="docs/images/screenshot-toolbar-terminal.png" width="760" alt="Finder 工具栏里的 Interm，以及它在该目录打开的终端">
+
+<img src="docs/images/screenshot-settings.png" width="560" alt="设置窗口：终端选择、Finder 扩展状态、自检">
+
 ## 特性
 
 - **一键打开**：把 Interm.app 拖进 Finder 工具栏，单击即在当前 Finder 窗口所在的目录打开终端。
