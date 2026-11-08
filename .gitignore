@@ -4,9 +4,5 @@ dist/
 *.xcuserstate
 xcuserdata/
 
-# 由 Scripts/make-icons.swift 生成
+# 图标生成过程中的中间产物（成品 icns/png 已入库，见 docs/icons/README.md）
 Bundle/Interm.iconset/
-Bundle/Interm.icns
-Bundle/IntermToolbarTemplate.png
-Bundle/IntermToolbarIcon.png
-Bundle/IntermToolbarIcon@2x.png
