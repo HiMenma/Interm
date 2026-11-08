@@ -62,14 +62,29 @@ public enum IntermURL {
             throw ParseFailure.notIntermScheme(url.scheme ?? "")
         }
 
-        let host = (url.host ?? "").lowercased()
+        // `interm:open?path=…` 这种省略 `//` 的写法，不同 Foundation 版本解析结果不一致：
+        // macOS 27 把它放进 path，macOS 15 则当成 opaque 部分（host 和 path 都为空）。
+        // 统一补成标准形态再解析，行为与系统版本无关。
+        var working = url
+        let absolute = url.absoluteString
+        if (url.host ?? "").isEmpty, absolute.lowercased().hasPrefix("interm:") {
+            var rest = String(absolute.dropFirst("interm:".count))
+            while rest.hasPrefix("/") {
+                rest.removeFirst()
+            }
+            if !rest.isEmpty, let normalized = URL(string: "interm://\(rest)") {
+                working = normalized
+            }
+        }
+
         // `interm://open` 是标准形态；`interm:open`（无 host）也接受，避免脚本手写时踩坑。
-        let actionPart = host.isEmpty ? url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")) : host
+        let host = (working.host ?? "").lowercased()
+        let actionPart = host.isEmpty ? working.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")) : host
         guard actionPart.caseInsensitiveCompare(action) == .orderedSame else {
             throw ParseFailure.unsupportedAction(actionPart)
         }
 
-        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        let components = URLComponents(url: working, resolvingAgainstBaseURL: false)
         let rawPath = components?.queryItems?.first(where: { $0.name == "path" })?.value
         guard let rawPath, !rawPath.isEmpty else {
             throw ParseFailure.missingPath

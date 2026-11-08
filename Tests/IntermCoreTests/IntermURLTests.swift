@@ -66,6 +66,12 @@ final class IntermURLTests: XCTestCase {
         }
     }
 
+    func testParseAcceptsSchemeWithoutHostAndLeadingSlash() throws {
+        let url = URL(string: "interm:/open?path=%2Ftmp")!
+        let parsed = try IntermURL.parse(url)
+        XCTAssertEqual(parsed.directory.path, "/tmp")
+    }
+
     func testParseAcceptsSchemeWithoutHost() throws {
         let url = URL(string: "interm:open?path=%2Ftmp")!
         let parsed = try IntermURL.parse(url)
