@@ -17,3 +17,13 @@ make screenshots
 | --- | --- |
 | `screenshot-toolbar-terminal.png` | Finder 工具栏（真实截图裁出的工具栏条）+ 它在该目录打开的终端 |
 | `screenshot-settings.png` | 设置窗口：终端选择、扩展状态、诊断入口 |
+| `social-preview.png` | GitHub 社交预览图（1280×640），由 `make social` 生成 |
+
+## 社交预览图
+
+GitHub 没有上传 social preview 的 API（官方只提供 Settings 页面上传），所以这一步要手动：
+
+1. `make social` 生成 `docs/images/social-preview.png`
+2. 仓库页 › Settings › Social preview › **Upload an image**，选这个文件
+
+图是 1280×640、不到 1 MB，满足 GitHub 的要求。
