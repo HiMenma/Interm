@@ -22,10 +22,19 @@ VERSION="$VERSION" BUILD_NUMBER="$BUILD_NUMBER" ./Scripts/build.sh
 echo "==> 打包 ${NAME}"
 mkdir -p dist
 rm -f "$ZIP" "${ZIP}.sha256"
-ditto -c -k --keepParent dist/Interm.app "$ZIP"
+# --norsrc/--noextattr/--noqtn/--noacl：不要把这些元数据写成 zip 里的 ._ 文件，
+# 否则用 Info-ZIP 解压后会多出 AppleDouble 文件，code signature 立刻失效。
+ditto -c -k --keepParent --norsrc --noextattr --noqtn --noacl dist/Interm.app "$ZIP"
 
 echo "==> 计算校验和"
 ( cd dist && shasum -a 256 "$NAME" > "${NAME}.sha256" )
+
+echo "==> 回读校验（解压后签名必须仍然有效）"
+VERIFY_DIR="$(mktemp -d)"
+unzip -q "$ZIP" -d "$VERIFY_DIR"
+codesign --verify --deep --strict "$VERIFY_DIR/Interm.app"
+"$VERIFY_DIR/Interm.app/Contents/MacOS/Interm" --version
+rm -rf "$VERIFY_DIR"
 
 SIZE="$(du -h "$ZIP" | cut -f1)"
 echo
