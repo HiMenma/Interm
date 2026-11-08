@@ -4,6 +4,8 @@ One click in Finder opens a terminal **in the current folder**. Native Swift (Ap
 
 **English** · [简体中文](README.zh-CN.md)
 
+[![CI](https://github.com/HiMenma/Interm/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/HiMenma/Interm/actions/workflows/ci.yml)
+
 ```
 Finder toolbar icon  ──click──▶  terminal opens already cd'd into that window's folder
 ```

@@ -4,6 +4,8 @@
 
 [English](README.md) · **简体中文**
 
+[![CI](https://github.com/HiMenma/Interm/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/HiMenma/Interm/actions/workflows/ci.yml)
+
 ```
 Finder 工具栏图标  ──单击──▶  终端已 cd 到该窗口所在目录
 ```
