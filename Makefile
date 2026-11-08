@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-.PHONY: all build app test icons install install-system uninstall selftest smoke dist screenshots clean
+.PHONY: all build app test icons install install-system uninstall selftest smoke dist screenshots social clean
 
 VERSION ?= 1.0.0
 BUILD_NUMBER ?= $(shell date +%Y%m%d%H%M)
@@ -42,6 +42,10 @@ smoke: build
 ## 抓 README 用的窗口截图（需要「屏幕录制」权限）
 screenshots: build
 	./Scripts/capture-screenshots.sh
+
+## 生成 GitHub 社交预览图（1280×640，需在网页 Settings › Social preview 手动上传）
+social:
+	swift Scripts/make-social-preview.swift
 
 ## 打包发布资产（zip + sha256）
 dist:

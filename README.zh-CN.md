@@ -32,6 +32,8 @@ Finder 工具栏图标  ──单击──▶  终端已 cd 到该窗口所在�
 
 ## 安装
 
+预编译版本：[Releases](https://github.com/HiMenma/Interm/releases/latest) —— arm64、ad-hoc 签名、未公证。
+
 ```bash
 git clone <本仓库> Interm && cd Interm
 

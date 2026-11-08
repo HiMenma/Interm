@@ -30,6 +30,8 @@ Finder toolbar icon  ──click──▶  terminal opens already cd'd into that
 
 ## Install
 
+Prebuilt binary: [Releases](https://github.com/HiMenma/Interm/releases/latest) — arm64, ad-hoc signed, not notarized.
+
 ```bash
 git clone <repo> Interm && cd Interm
 
